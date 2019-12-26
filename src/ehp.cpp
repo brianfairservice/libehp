@@ -20,6 +20,46 @@
 
 // @HEADER_END
 
+#ifdef _WIN32
+#  include <windows.h>
+#  undef max
+#  undef min
+#  if defined(_MSC_VER)
+#    define htobe16(x) _byteswap_ushort(x)
+#    define htole16(x) (x)
+#    define be16toh(x) _byteswap_ushort(x)
+#    define le16toh(x) (x)
+
+#    define htobe32(x) _byteswap_ulong(x)
+#    define htole32(x) (x)
+#    define be32toh(x) _byteswap_ulong(x)
+#    define le32toh(x) (x)
+
+#    define htobe64(x) _byteswap_uint64(x)
+#    define htole64(x) (x)
+#    define be64toh(x) _byteswap_uint64(x)
+#    define le64toh(x) (x)
+
+#  elif defined(__GNUC__) || defined(__clang__)
+
+#    define htobe16(x) __builtin_bswap16(x)
+#    define htole16(x) (x)
+#    define be16toh(x) __builtin_bswap16(x)
+#    define le16toh(x) (x)
+
+#    define htobe32(x) __builtin_bswap32(x)
+#    define htole32(x) (x)
+#    define be32toh(x) __builtin_bswap32(x)
+#    define le32toh(x) (x)
+
+#    define htobe64(x) __builtin_bswap64(x)
+#    define htole64(x) (x)
+#    define be64toh(x) __builtin_bswap64(x)
+#    define le64toh(x) (x)
+
+#  endif // _MSC_VER
+#endif // _WIN32
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -72,21 +112,21 @@ bool eh_frame_util_t<ptrsize>::read_type(T &value, uint64_t &position, const uin
 			break;
 		case 2:
 			if(is_be)
-				value=be16toh(value);
+                               value=static_cast<T>(be16toh(static_cast<unsigned short>(value)));
 			else
-				value=le16toh(value);
+                               value=static_cast<T>(le16toh(static_cast<unsigned short>(value)));
 			break;
 		case 4:
 			if(is_be)
-				value=be32toh(value);
+                               value=static_cast<T>(be32toh(static_cast<unsigned long>(value)));
 			else
-				value=le32toh(value);
+                               value=static_cast<T>(le32toh(static_cast<unsigned long>(value)));
 			break;
 		case 8:
 			if(is_be)
-				value=be64toh(value);
+                               value=static_cast<T>(be64toh(value));
 			else
-				value=le64toh(value);
+                               value=static_cast<T>(le64toh(value));
 			break;
 		default:
 			throw invalid_argument("Unknown integer size");
